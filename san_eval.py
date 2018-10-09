@@ -19,9 +19,9 @@ from san_vision import transforms
 from utils import time_string, time_for_file
 
 def evaluate(args):
-  assert torch.cuda.is_available(), 'CUDA is not available.'
-  torch.backends.cudnn.enabled   = True
-  torch.backends.cudnn.benchmark = True
+  #assert torch.cuda.is_available(), 'CUDA is not available.'
+  torch.backends.cudnn.enabled   = False
+  torch.backends.cudnn.benchmark = False
 
   print ('The image is {:}'.format(args.image))
   print ('The model is {:}'.format(args.model))
@@ -29,7 +29,7 @@ def evaluate(args):
   assert snapshot.exists(), 'The model path {:} does not exist'
   print ('The face bounding box is {:}'.format(args.face))
   assert len(args.face) == 4, 'Invalid face input : {:}'.format(args.face)
-  snapshot = torch.load(snapshot)
+  snapshot = torch.load(snapshot, map_location='cpu')
 
   mean_fill   = tuple( [int(x*255) for x in [0.5, 0.5, 0.5] ] )
   normalize   = transforms.Normalize(mean=[0.5, 0.5, 0.5],
@@ -39,7 +39,7 @@ def evaluate(args):
 
   net = models.__dict__[param.arch](param.modelconfig, None)
 
-  net = net.cuda()
+  #net = net.cuda()
   weights = models.remove_module_dict(snapshot['state_dict'])
   net.load_state_dict(weights)
 
@@ -48,7 +48,8 @@ def evaluate(args):
 
   print ('[{:}] prepare the input data'.format(time_string()))
   [image, _, _, _, _, _, cropped_size], meta = dataset.prepare_input(args.image, args.face)
-  inputs = image.unsqueeze(0).cuda()
+  #inputs = image.unsqueeze(0).cuda()
+  inputs = image.unsqueeze(0)
   print ('[{:}] prepare the input data done'.format(time_string()))
   # network forward
   with torch.no_grad():
