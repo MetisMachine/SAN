@@ -64,19 +64,14 @@ def return_box(image_path, pts_path, all_dict, USE_BOX):
 def generage_aedit_list(root, save_dir, box_data, SUFFIX):
   assert osp.isdir(root), '{} is not dir'.format(root)
   if not osp.isdir(save_dir): os.makedirs(save_dir)
-  train_length, common_length, challeng_length = 3148, 554, 135
-  subsets = ['afw', 'helen', 'ibug', 'lfpw']
-  dir_lists = [osp.join(root, subset) for subset in subsets]
+  
+  dir_lists = [root]
   imagelist, num_image = load_list_from_folders(dir_lists, ext_filter=['png', 'jpg', 'jpeg'], depth=3)
-
-  indoor, indoor_num = load_list_from_folders([osp.join(root, 'aedit', '01_Indoor')], ext_filter=['png', 'jpg', 'jpeg'], depth=3)
-  otdoor, otdoor_num = load_list_from_folders([osp.join(root, 'aedit', '02_Outdoor')], ext_filter=['png', 'jpg', 'jpeg'], depth=3)
-  assert indoor_num == 300 and otdoor_num == 300, 'The number of images are not right for 300-W-IO: {} & {}'.format(indoor_num, otdoor_num)
 
   train_set, common_set, challeng_set = [], [], []
   for image_path in imagelist:
     name, ext = osp.splitext(image_path)
-    anno_path = name + '.pts'
+    anno_path = name + '_bv78c.txt'
     assert osp.isfile(anno_path), 'annotation {} for : {} does not exist'.format(image_path, anno_path)
     if name.find('ibug') > 0:
       challeng_set.append( (image_path, anno_path) )
@@ -91,10 +86,7 @@ def generage_aedit_list(root, save_dir, box_data, SUFFIX):
         raise Exception('Unknow name : {}'.format(name))
     else:
       raise Exception('Unknow name : {}'.format(name))
-  assert len(train_set) == train_length, 'The length is not right for train : {} vs {}'.format(len(train_set), train_length)
-  assert len(common_set) == common_length, 'The length is not right for common : {} vs {}'.format(len(common_set), common_length)
-  assert len(challeng_set) == challeng_length, 'The length is not right for challeng : {} vs {}'.format(len(common_set), common_length)
-
+  
   all_lines = []
   with open(osp.join(save_dir, 'aedit.train.' + SUFFIX), 'w') as txtfile:
     for cpair in train_set:
