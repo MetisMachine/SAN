@@ -85,7 +85,6 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
 
     if os.path.exists(rect_name) and os.path.exists(points_name):
       # read rectangle file corresponding to image
-      print("Are we here")
       with open(rect_name, 'r') as file:
         rect = file.readline()
       rect = rect.split()
@@ -99,7 +98,6 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
       y2 = str(int(height) + int(top))
       
       box_str = " ".join([x1, y1, x2, y2])
-      print(box_str)
       
       # Add the following to the top of each pts file to be compatible with SAN:
       # version: 1
@@ -126,8 +124,8 @@ if __name__ == '__main__':
   fldDatadir = sys.argv[1]
   numPoints = sys.argv[2]
 
-  numMaleTrain = 3
-  numFemaleTrain = 8
+  numMaleTrain = 550
+  numFemaleTrain = 1300
 
   maleDir = os.path.join(fldDatadir, 'male')
   femaleDir = os.path.join(fldDatadir, 'female')
@@ -221,8 +219,8 @@ if __name__ == '__main__':
       g.write(p + '\n')
 
   #Create SAN input files
-  createSANInputFiles(fldDatadir, trainFiles, os.path.join(fldDatadir, 'aedit-training.txt'), numPoints, verbose=True)
-  createSANInputFiles(fldDatadir, testFiles, os.path.join(fldDatadir, 'aedit-testing.txt'), numPoints, verbose=True)
+  createSANInputFiles(fldDatadir, trainFiles, os.path.join(fldDatadir, 'aedit-training.txt'), numPoints, verbose=False)
+  createSANInputFiles(fldDatadir, testFiles, os.path.join(fldDatadir, 'aedit-testing.txt'), numPoints, verbose=False)
 
   # generate XML files for train and test data
   #createXml(trainFiles, os.path.join(fldDatadir, 'training_with_face_landmarks.xml'), numPoints, verbose=False)
