@@ -34,11 +34,13 @@ args = opt.opt
 if args.manualSeed is None: args.manualSeed = random.randint(1, 10000)
 random.seed(args.manualSeed)
 torch.manual_seed(args.manualSeed)
-torch.cuda.manual_seed_all(args.manualSeed)
-torch.backends.cudnn.enabled   = True
-#torch.backends.cudnn.benchmark = True
+#torch.cuda.manual_seed_all(args.manualSeed)
+torch.backends.cudnn.enabled   = False
+torch.backends.cudnn.benchmark = False
+
 
 def main():
+
   # Init logger
   if not os.path.isdir(args.save_path): os.makedirs(args.save_path)
   log = open(os.path.join(args.save_path, 'cluster_seed_{}_{}.txt'.format(args.manualSeed, time_for_file())), 'w')
@@ -53,12 +55,11 @@ def main():
   print_log("torch  version : {}".format(torch.__version__), log)
   print_log("cudnn  version : {}".format(torch.backends.cudnn.version()), log)
 
-
   # finetune resnet-152 to train style-discriminative features
   resnet = models.resnet152(True, num_classes=4)
-  resnet = torch.nn.DataParallel(resnet).cuda()
+  resnet = torch.nn.DataParallel(resnet)
   # define loss function (criterion) and optimizer
-  criterion = torch.nn.CrossEntropyLoss().cuda()
+  criterion = torch.nn.CrossEntropyLoss()
   optimizer = torch.optim.SGD(resnet.parameters(), args.learning_rate,
                                 momentum=args.momentum,
                                 weight_decay=args.decay)
@@ -100,7 +101,7 @@ def main():
     top1, losses = AverageMeter(), AverageMeter()
     resnet.train()
     for i, (inputs, target) in enumerate(cls_train_loader):
-      target = target.cuda(async=True)
+      #target = target.cuda(async=True)
       # compute output
       _, output = resnet(inputs)
       loss = criterion(output, target)
@@ -122,7 +123,7 @@ def main():
     resnet.eval()
     top1, losses = AverageMeter(), AverageMeter()
     for i, (inputs, target) in enumerate(val_loader):
-      target = target.cuda(async=True)
+      #target = target.cuda(async=True)
       # compute output
       with torch.no_grad():
         _, output = resnet(inputs)
