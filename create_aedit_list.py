@@ -72,16 +72,20 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
   
   numFiles = len(imageNames)
   
+  print(directoryPath)
+  print(fileName)
+  
   for k, imageName in enumerate(imageNames):
     # print progress about files being read
     if verbose: print('{}:{} - {}'.format(k+1, numFiles, imageName))
 
-    rect_name = imageName + '_rect.txt'
-    points_name = imageName + '_bv' + numPoints + 'c.txt'
-    picture_name = imageName + '.jpg'
+    rect_name = os.path.join(directoryPath, imageName + '_rect.txt')
+    points_name = os.path.join(directoryPath, imageName + '_bv' + numPoints + 'c.txt')
+    picture_name = os.path.join(directoryPath, imageName + '.jpg')
 
     if os.path.exists(rect_name) and os.path.exists(points_name):
       # read rectangle file corresponding to image
+      print("Are we here")
       with open(rect_name, 'r') as file:
         rect = file.readline()
       rect = rect.split()
@@ -91,10 +95,11 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
       # Test this on SAN image? Not sure if this is right coordinate structure
       x1 = left
       y1 = top 
-      x2 = left + width
-      y2 = height
+      x2 = str(int(left) + int(width))
+      y2 = str(int(height) + int(top))
       
-      box_str = '{:.3f} {:.3f} {:.3f} {:.3f}'.format(x1, y1, x2, y2)
+      box_str = " ".join([x1, y1, x2, y2])
+      print(box_str)
       
       # Add the following to the top of each pts file to be compatible with SAN:
       # version: 1
@@ -105,12 +110,12 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
         content = ptsFile.read()
         addons = "version: 1" + "\n" + "n_points:  " + numPoints + "\n" + "{" + "\n"
         ptsFile.seek(0, 0)
-        ptsFile.write(addons + '\n' + content + '\n' + '}')
+        ptsFile.write(addons + content + '}')
       
       fullImagePath = os.path.join(directoryPath, picture_name)
       fullPointsPath = os.path.join(directoryPath, points_name)
       
-      with open(fileName, "w") as output: 
+      with open(fileName, "a") as output: 
         output.write('{} {} {}\n'.format(fullImagePath, fullPointsPath, box_str))
     
     
