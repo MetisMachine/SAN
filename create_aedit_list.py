@@ -3,6 +3,7 @@ import sys
 import os
 import random
 import glob
+import string
 
 try:
   from lxml import etree as ET
@@ -68,7 +69,9 @@ def createXml(imageNames, xmlName, numPoints, verbose=True):
 
 
 def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=True):
-    
+  
+  numFiles = len(imageNames)
+  
   for k, imageName in enumerate(imageNames):
     # print progress about files being read
     if verbose: print('{}:{} - {}'.format(k+1, numFiles, imageName))
@@ -80,7 +83,7 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
     if os.path.exists(rect_name) and os.path.exists(points_name):
       # read rectangle file corresponding to image
       with open(rect_name, 'r') as file:
-       rect = file.readline()
+        rect = file.readline()
       rect = rect.split()
       left, top, width, height = rect[0:4]
       
@@ -104,13 +107,13 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
         ptsFile.seek(0, 0)
         ptsFile.write(addons + '\n' + content + '\n' + '}')
       
-     fullImagePath = os.path.join(directoryPath, picture_name)
-     fullPointsPath = os.path.join(directoryPath, points_name)
+      fullImagePath = os.path.join(directoryPath, picture_name)
+      fullPointsPath = os.path.join(directoryPath, points_name)
       
       with open(fileName, "w") as output: 
-          output.write('{} {} {}\n'.format(fulllImagePath, fullPointsPath, box_str)
+        output.write('{} {} {}\n'.format(fullImagePath, fullPointsPath, box_str))
     
-
+    
 if __name__ == '__main__':
 
   # read value to facial_landmark_data directory
@@ -118,11 +121,12 @@ if __name__ == '__main__':
   fldDatadir = sys.argv[1]
   numPoints = sys.argv[2]
 
-  numMaleTrain = 550
-  numFemaleTrain = 1300
+  numMaleTrain = 3
+  numFemaleTrain = 8
 
   maleDir = os.path.join(fldDatadir, 'male')
   femaleDir = os.path.join(fldDatadir, 'female')
+  
   maleRectPaths = glob.glob(os.path.join(maleDir, '*_rect.txt'))
   femaleRectPaths = glob.glob(os.path.join(femaleDir, '*_rect.txt'))
 
@@ -148,8 +152,28 @@ if __name__ == '__main__':
   # To get which files are new we will substract all data from old data
   maleNewFiles = list(set(maleImageNames) - set(maleTrainFiles_v1) - set(maleTestFiles_v1))
   femaleNewFiles = list(set(femaleImageNames) - set(femaleTrainFiles_v1) - set(femaleTestFiles_v1))
-
-
+  
+  # Remove absolutle path here--not sure why it is added. 
+  maleNewFiles2 = []
+  femaleNewFiles2 = []
+  
+  for x in maleNewFiles:
+    if x == os.path.abspath(x):
+      y = x.split('/')
+      z = y[-2:]
+      maleNewFiles2.append("/".join(z))
+    else:
+      maleNewFiles2.append(x)
+      
+  for x in femaleNewFiles:
+    if x == os.path.abspath(x):
+      y = x.split('/')
+      z = y[-2:]
+      femaleNewFiles2.append("/".join(z))
+    else:
+      femaleNewFiles2.append(x)
+      
+    
   # Since we don't yet have enough train files even after adding more 
   # data. We are not going to add any more test files 
   # from newer set of female images.
@@ -157,11 +181,12 @@ if __name__ == '__main__':
   femaleTestFiles = femaleTestFiles_v1
 
   # Add training images from newer set of images
-  maleTrainFiles_v2 = random.sample(maleNewFiles, numMaleTrain - len(maleTrainFiles_v1))
-  femaleTrainFiles_v2 = random.sample(femaleNewFiles, numFemaleTrain - len(femaleTrainFiles_v1))
+  maleTrainFiles_v2 = random.sample(maleNewFiles2, numMaleTrain - len(maleTrainFiles_v1))
+  femaleTrainFiles_v2 = random.sample(femaleNewFiles2, numFemaleTrain - len(femaleTrainFiles_v1))
 
   maleTrainFiles = maleTrainFiles_v1 + maleTrainFiles_v2
   femaleTrainFiles = femaleTrainFiles_v1 + femaleTrainFiles_v2
+  
 
   # extra check. not needed in this version.
   # make test set uniform with almost equal number of images from both male and female
@@ -197,3 +222,5 @@ if __name__ == '__main__':
   # generate XML files for train and test data
   #createXml(trainFiles, os.path.join(fldDatadir, 'training_with_face_landmarks.xml'), numPoints, verbose=False)
   #createXml(testFiles, os.path.join(fldDatadir, 'testing_with_face_landmarks.xml'), numPoints, verbose=False)
+  
+  
