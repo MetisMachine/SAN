@@ -106,9 +106,14 @@ def createSANInputFiles(directoryPath, imageNames, fileName, numPoints, verbose=
       # Add another } at the end
       with open(points_name, 'r+') as ptsFile: 
         content = ptsFile.read()
+        # Some files were mysteriously going through this twice. 
+        #if content.find('version') == -1:
         addons = "version: 1" + "\n" + "n_points:  " + numPoints + "\n" + "{" + "\n"
         ptsFile.seek(0, 0)
         ptsFile.write(addons + content + '}')
+        #else:
+          #print(points_name)
+      
       
       fullImagePath = os.path.join(directoryPath, picture_name)
       fullPointsPath = os.path.join(directoryPath, points_name)
