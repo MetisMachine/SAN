@@ -1,0 +1,7 @@
+project_token: 880447014fe23cbb4203bf91
+name: SAN
+jobs:
+  - job_id: 6e0b8286-ca89-41e3-acee-2d3577de9a17
+    language: python
+    name: files-on-s3
+    entrypoint: "sleep 5"
